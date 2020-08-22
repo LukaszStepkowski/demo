@@ -4,12 +4,14 @@ import com.example.demo.dto.GoldDataDto;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.math.BigDecimal;
+
 @Service
 public class GoldService {
 
-    public String getGold(String url){
-        RestTemplate restTemplate = new RestTemplate();
-        GoldDataDto[] goldDataDto = restTemplate.getForObject(url, GoldDataDto[].class);
-        return goldDataDto[0].getCena().toString();
+    private static final RestTemplate REST_TEMPLATE = new RestTemplate();
+
+    public BigDecimal getGold(String url){
+        return REST_TEMPLATE.getForObject(url, GoldDataDto[].class)[0].getCena();
     }
 }

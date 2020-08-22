@@ -6,15 +6,21 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigDecimal;
+
 @RestController
 @RequestMapping(path = "/gold")
 public class GoldRestController {
 
+    private final GoldService goldService;
+
     @Autowired
-    GoldService goldService;
+    public GoldRestController(GoldService goldService) {
+        this.goldService = goldService;
+    }
 
     @GetMapping
-    public String GetGoldPrice (String url){
+    public BigDecimal getGoldPrice(String url){
         return goldService.getGold(url);
     }
 }
