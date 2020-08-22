@@ -9,8 +9,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -53,5 +52,12 @@ public class FileService {
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    public Map<String, Optional<PriceStatPerDay>> statistics() throws IOException {
+        return readPrices().stream()
+//                .sorted(Comparator.comparing(PriceStatPerDay::getMidQualityPrice))
+                .collect(Collectors.groupingBy(PriceStatPerDay::getState,
+                        Collectors.minBy(Comparator.comparing(PriceStatPerDay::getMidQualityPrice))));
     }
 }
