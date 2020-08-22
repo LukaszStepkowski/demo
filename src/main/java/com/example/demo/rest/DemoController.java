@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -33,7 +32,7 @@ public class DemoController {
     }
 
     @GetMapping(path = "/stats")
-    public Map<LocalDate, Optional<PriceStatPerDay>> statistics() throws IOException {
+    public Map<String, Optional<PriceStatPerDay>> statistics() throws IOException {
         return fileService.statistics();
     }
 
