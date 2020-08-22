@@ -29,7 +29,7 @@ public class FileService {
     public List<PriceStatPerDay> readPrices() throws IOException {
         List<String> strings = Files.readAllLines(resourceFile.getFile().toPath());
         return strings.stream()
-                .filter(Objects::isNull)
+                .filter(Objects::nonNull)
                 .map(line -> line.split(","))
                 .map(array -> new PriceStatPerDay(
                         array[0],
