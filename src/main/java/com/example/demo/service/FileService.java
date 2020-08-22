@@ -54,10 +54,11 @@ public class FileService {
         }
     }
 
-    public Map<String, Optional<PriceStatPerDay>> statistics() throws IOException {
+    public Map<LocalDate, Optional<PriceStatPerDay>> statistics() throws IOException {
         return readPrices().stream()
+                .filter(p -> p.getLowQualityPrice() != null)
 //                .sorted(Comparator.comparing(PriceStatPerDay::getMidQualityPrice))
-                .collect(Collectors.groupingBy(PriceStatPerDay::getState,
-                        Collectors.minBy(Comparator.comparing(PriceStatPerDay::getMidQualityPrice))));
+                .collect(Collectors.groupingBy(PriceStatPerDay::getDate,
+                        Collectors.minBy(Comparator.comparing(PriceStatPerDay::getLowQualityPrice))));
     }
 }
