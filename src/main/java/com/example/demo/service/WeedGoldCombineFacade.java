@@ -1,6 +1,8 @@
 package com.example.demo.service;
 
 import com.example.demo.model.PriceStatPerDay;
+import com.example.demo.service.statCalculator.StatMappingStrategy;
+import com.example.demo.service.statCalculator.StatMappingStrategyFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,24 +17,20 @@ import java.util.stream.Collectors;
 @Service
 public class WeedGoldCombineFacade {
 
-    public static final String CENA_ZLOTA = "http://api.nbp.pl/api/cenyzlota/";
-    private final GoldService goldService;
     private final FileService statService;
     private final EmailService emailService;
-    private final CurrencyConverter currencyConverter;
-    private final CurrencyRetriever currencyRetriever = new CurrencyRetriever();
+    private final StatMappingStrategyFactory strategyFactory;
 
     @Autowired
-    public WeedGoldCombineFacade(GoldService goldService, FileService statService, EmailService emailService, CurrencyConverter currencyConverter) {
-        this.goldService = goldService;
+    public WeedGoldCombineFacade(FileService statService, EmailService emailService, StatMappingStrategyFactory strategyFactory) {
         this.statService = statService;
         this.emailService = emailService;
-        this.currencyConverter = currencyConverter;
+        this.strategyFactory = strategyFactory;
     }
 
     public Map<String, BigDecimal> weedForGold() throws IOException {
         Map<String, Optional<PriceStatPerDay>> statistics = statService.statistics();
-        BigDecimal gold = goldService.getGold(CENA_ZLOTA);
+        BigDecimal gold = BigDecimal.ONE;//goldService.getGold(CENA_ZLOTA);
 
         if (gold.compareTo(BigDecimal.ONE) < 0) {
             emailService.sendEmail();
@@ -47,12 +45,7 @@ public class WeedGoldCombineFacade {
         return Map.of();
     }
 
-    public Map<String, BigDecimal> goldBased() throws IOException {
-        return rawData().entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, v -> v.getValue()
-                        .divide(goldService.getGold(CENA_ZLOTA),
-                                MathContext.DECIMAL32)));
-    }
+
 
     public Map<String, BigDecimal> rawData() throws IOException {
         return statService.readPrices().stream()
@@ -63,11 +56,19 @@ public class WeedGoldCombineFacade {
                 ));
     }
 
+    public Map<String, BigDecimal> goldBased() throws IOException {
+        return mapUsingStrategy(strategyFactory.goldBasedStrategy());
+    }
+
     public Map<String, BigDecimal> currencyBased(String currency) throws IOException {
+        return mapUsingStrategy(strategyFactory.currencyConvertingStrategy(currency));
+    }
+
+    public Map<String, BigDecimal> mapUsingStrategy(StatMappingStrategy strategy) throws IOException {
         return rawData().entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey,
-                        v -> currencyConverter.convertCurrency(currencyRetriever.retrieveCurrentExchangeRate("USD"),
-                                currencyRetriever.retrieveCurrentExchangeRate(currency),
-                                v.getValue())));
+                .collect(
+                        Collectors.toMap(Map.Entry::getKey,
+                        v -> strategy.map(v.getValue()))
+                );
     }
 }
