@@ -107,4 +107,6 @@ public class FileService {
                 ))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
+
+
 }
